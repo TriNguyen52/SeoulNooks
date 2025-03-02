@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply as Non-Coliver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-6 text-center">Apply as a Non-Coliver</h2>
+
+            <!-- Success Message -->
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="p-4 mb-2 text-white bg-green-500 rounded">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- First Name -->
+                    <div>
+                        <label class="block text-gray-700 font-medium">First Name</label>
+                        <input type="text" name="first_name" class="w-full p-2 border rounded-lg" required>
+                    </div>
+                    <!-- Last Name -->
+                    <div>
+                        <label class="block text-gray-700 font-medium">Last Name</label>
+                        <input type="text" name="last_name" class="w-full p-2 border rounded-lg" required>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-gray-700 font-medium">Email</label>
+                    <input type="email" name="email" class="w-full p-2 border rounded-lg" required>
+                </div>
+
+                <!-- Check-in & Move-out Dates -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium">Check-in Date</label>
+                        <input type="date" name="check_in_date" id="check_in_date" class="w-full p-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium">Move-out Date</label>
+                        <input type="date" name="move_out_date" id="move_out_date" class="w-full p-2 border rounded-lg" required>
+                    </div>
+                </div>
+
+                <!-- Room Type (Styled as Cards) -->
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Room Type</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <label class="p-4 border rounded-lg text-center cursor-pointer hover:bg-gray-200">
+                            <input type="radio" name="room_type" value="standard" class="hidden" checked>
+                            <span class="block font-semibold">Standard</span>
+                            <span class="text-sm text-gray-600">$50/night</span>
+                        </label>
+                        <label class="p-4 border rounded-lg text-center cursor-pointer hover:bg-gray-200">
+                            <input type="radio" name="room_type" value="deluxe" class="hidden">
+                            <span class="block font-semibold">Deluxe</span>
+                            <span class="text-sm text-gray-600">$80/night</span>
+                        </label>
+                        <label class="p-4 border rounded-lg text-center cursor-pointer hover:bg-gray-200">
+                            <input type="radio" name="room_type" value="suite" class="hidden">
+                            <span class="block font-semibold">Suite</span>
+                            <span class="text-sm text-gray-600">$120/night</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Number of Guests -->
+                <div>
+                    <label class="block text-gray-700 font-medium">Number of Guests</label>
+                    <input type="number" name="guests" id="guests" class="w-full p-2 border rounded-lg" min="1" value="1" required>
+                </div>
+
+                <!-- Total Price -->
+                <div>
+                    <label class="block text-gray-700 font-medium">Total Price</label>
+                    <input type="number" name="total_price" id="total_price" class="w-full p-2 border rounded-lg bg-gray-200" readonly>
+                </div>
+
+                <!-- Why Join? -->
+                <div>
+                    <label class="block text-gray-700 font-medium">Why do you want to join?</label>
+                    <textarea name="why_join" class="w-full p-2 border rounded-lg" required></textarea>
+                </div>
+
+                <!-- Special Requests -->
+                <div>
+                    <label class="block text-gray-700 font-medium">Special Requests</label>
+                    <textarea name="special_requests" class="w-full p-2 border rounded-lg"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-semibold transition">
+                    Submit Application
+                </button>
+            </form>
+
+            <p class="text-center text-gray-600 text-sm mt-4">
+                Need help? <a href="mailto:support@example.com" class="text-blue-500 underline">Contact us</a>.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkIn = document.getElementById("check_in_date");
+            const checkOut = document.getElementById("move_out_date");
+            const guests = document.getElementById("guests");
+            const totalPrice = document.getElementById("total_price");
+            const roomTypeInputs = document.querySelectorAll("input[name='room_type']");
+
+            const roomRates = {"standard": 50, "deluxe": 80, "suite": 120};
+
+            function calculateTotal() {
+                const inDate = new Date(checkIn.value);
+                const outDate = new Date(checkOut.value);
+                const numGuests = parseInt(guests.value);
+                const selectedRoomType = document.querySelector("input[name='room_type']:checked").value;
+                const roomRate = roomRates[selectedRoomType] || 0;
+
+                if (!isNaN(inDate) && !isNaN(outDate) && outDate > inDate) {
+                    const nights = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+                    const total = nights * roomRate * numGuests;
+                    totalPrice.value = total.toFixed(2);
+                } else {
+                    totalPrice.value = "";
+                }
+            }
+
+            checkIn.addEventListener("change", calculateTotal);
+            checkOut.addEventListener("change", calculateTotal);
+            guests.addEventListener("input", calculateTotal);
+            roomTypeInputs.forEach(input => input.addEventListener("change", calculateTotal));
+        });
+    </script>
+</body>
+</html>
