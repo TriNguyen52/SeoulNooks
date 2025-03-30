@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seoul Nooks Booking</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    {% load static %}
+    <style>
+      body {
+        font-family: "Roboto Slab", serif;
+        text-align: center;
+        background-color: white;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        width: 95%;
+        max-width: 1200px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+      }
+      .booking-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .booking-form input,
+      .booking-form select {
+        padding: 10px;
+        border-radius: 2px;
+        border: 1px solid #ccc;
+        min-width: 120px;
+        background-color: #efefef;
+        color: black;
+      }
+      .booking-form button {
+        background-color: orange;
+        border: 1px solid black;
+        border-radius: 15px;
+        color: black;
+        cursor: pointer;
+        padding: 8px 35px;
+        font-size: 16px;
+      }
+      .room-selection {
+        text-align: left;
+        overflow: hidden;
+      }
+      .room-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        transition: transform 0.3s ease;
+      }
+      .room {
+        display: flex;
+        flex-direction: column;
+        background: #efefef;
+        align-items: flex-start;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        transition: border-color 0.3s ease-in-out;
+        gap: 20px;
+        cursor: pointer;
+      }
+      .room-content {
+        text-align: left;
+        width: 100%;
+      }
+      .room:hover {
+        border-color: orange;
+      }
+      .image-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+      .main-image {
+        width: 100% !important;
+        height: 300px !important;
+        object-fit: cover;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #f0f0f0; /* Placeholder color */
+      }
+      .main-image.loading {
+        filter: blur(10px);
+      }
+      .main-image.expanded {
+        width: 90vw !important;
+        height: 90vh !important;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      }
+      .thumbnail-container {
+        display: flex;
+        gap: 5px;
+        overflow-x: auto;
+        padding: 5px;
+        width: 100%;
+        justify-content: center;
+      }
+      .thumbnail {
+        width: 70px !important;
+        height: 75px !important;
+        object-fit: cover;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        background-color: #f0f0f0; /* Placeholder color */
+      }
+      .thumbnail.loading {
+        filter: blur(5px);
+      }
+      .thumbnail:hover {
+        opacity: 0.8;
+      }
+      .thumbnail.active {
+        border: 2px solid orange;
+      }
+      .flatpickr-calendar {
+        border: none !important;
+      }
+      .flatpickr-calendar .flatpickr-months .flatpickr-prev-month,
+      .flatpickr-calendar .flatpickr-months .flatpickr-next-month {
+        font-weight: bold;
+        font-size: 18px;
+        color: black;
+      }
+      .flatpickr-calendar .flatpickr-day.selected {
+        background-color: orange !important;
+        color: white !important;
+      }
+      .selected {
+        border-color: orange !important;
+      }
+      .footer {
+        background-color: orange;
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+        margin: auto;
+      }
+      .footer a {
+        color: black;
+        text-decoration: none;
+      }
+      #applicant-details {
+        display: none;
+        border-radius: 10px;
+        margin-top: 20px;
+        text-align: left;
+      }
+      #applicant-details input {
+        display: block;
+        width: 100%;
+        max-width: 500px;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      #applicant-details textarea {
+        display: block;
+        width: 100%;
+        max-width: 800px;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        min-height: 100px;
+        resize: vertical;
+      }
+      #applicant-details label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+      }
+      .next-container {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .next {
+        background-color: orange;
+        border: 1px solid black;
+        border-radius: 15px;
+        padding: 10px 10px;
+        color: black;
+        cursor: pointer;
+        width: 100%;
+        max-width: 200px;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      /* Media Queries */
+      @media screen and (min-width: 768px) {
+        .room {
+          flex-direction: row;
+        }
+        .image-gallery {
+          max-width: 300px;
+        }
+        .main-image {
+          height: 300px !important;
+        }
+        #applicant-details input {
+          width: 50%;
+        }
+        #applicant-details textarea {
+          width: 80%;
+        }
+        .next {
+          width: 20%;
+        }
+      }
+
+      @media screen and (max-width: 767px) {
+        .container {
+          width: 100%;
+          padding: 10px;
+        }
+        .booking-form {
+          flex-direction: column;
+        }
+        .booking-form input,
+        .booking-form select,
+        .booking-form button {
+          width: 100%;
+        }
+        .main-image {
+          height: 250px !important;
+        }
+        .thumbnail {
+          width: 50px !important;
+          height: 50px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {% csrf_token %}
+    <div class="container">
+      <h1>Book your stay at Seoul Nooks</h1>
+      <div class="booking-form">
+        <input
+          type="text"
+          id="checkin"
+          name="date_join"
+          placeholder="Check-in (yyyy-mm-dd)"
+          readonly
+        />
+        <input
+          type="text"
+          id="checkout"
+          name="date_leave"
+          placeholder="Check-out (yyyy-mm-dd)"
+          readonly
+        />
+        <select id="guests" name="guests">
+          <option value="1">1 Guest</option>
+          <option value="2">2 Guests</option>
+          <option value="3">3 Guests</option>
+        </select>
+        <select id="member-type" name="member_type" required>
+          <option value="new member">New Member</option>
+          <option value="returning member">Returning Member</option>
+        </select>
+        <button id="search">Search</button>
+      </div>
+
+      <div class="room-selection">
+        <h2>Select your accommodation:</h2>
+        <div class="room-list">
+          {% for chapter in chapters_info %}
+          <div class="room" 
+               data-name="{{ chapter.chapter.name }}" 
+               data-rate="{{ chapter.nightly_rate }}"
+               data-id="{{ chapter.chapter.id }}"
+               {% if not chapter.is_available %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+            <div class="image-gallery">
+              {% if chapter.images.first %}
+              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                    data-src="{{ chapter.images.first.image.url }}" 
+                    alt="{{ chapter.chapter.name }} Main Image" 
+                    class="main-image loading" 
+                    data-full-url="{{ chapter.images.first.image.url }}"
+                    loading="lazy">
+              <div class="thumbnail-container">
+                {% for image in chapter.images %}
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                     data-src="{{ image.image.url }}" 
+                     alt="{{ chapter.chapter.name }} Thumbnail {{ forloop.counter }}" 
+                     class="thumbnail loading {% if forloop.first %}active{% endif %}"
+                     data-full-url="{{ image.image.url }}"
+                     loading="lazy">
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            <div class="room-content">
+              <h3>{{ chapter.chapter.name }}</h3>
+              <p>{{ chapter.chapter.description }}</p>
+              <p><strong>Accommodation price:</strong> {{ chapter.nightly_rate }}€ per night</p>
+              {% if not chapter.is_available %}
+              <p style="color: red;">Not available for selected dates</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div id="applicant-details">
+        <h3>You Selected: <span id="selected-room">N/A</span></h3>
+        <p>
+          Stay Duration: <span id="stay-duration">dd/mm/yyyy - dd/mm/yyyy</span>
+        </p>
+        <p>
+          Room Rate: <span id="room-rate">40€ per night</span> x
+          <span id="total-nights">x</span> nights
+        </p>
+
+        <label for="coupon">COUPON CODE:</label>
+        <input type="text" id="coupon" placeholder="Enter coupon" />
+        <button id="apply-coupon">Apply</button>
+
+        <p><strong>Total:</strong> <span id="total-price">0€</span></p>
+
+        <h4>Enter Your Details</h4>
+        <input type="text" id="first-name" name="first_name" placeholder="First Name" required />
+        <input type="text" id="last-name" name="last_name" placeholder="Last Name" required />
+        <input type="email" id="email" name="email" placeholder="Email" required />
+
+        <label for="question1">Question 1: Please tell us about yourself and your interest in Seoul Nooks:</label>
+        <textarea id="question1" name="question_1" required></textarea>
+
+        <label for="question2">Question 2: What skills or contributions would you bring to our community?</label>
+        <textarea id="question2" name="question_2" required></textarea>
+
+        <label for="question3">Question 3: What are your expectations for your stay?</label>
+        <textarea id="question3" name="question_3" required></textarea>
+      </div>
+
+      <div class="next-container">
+        <button class="next">Next</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="mailto:contact@seoulnooks.com"
+        >Can't find availability for your desired dates?</a
+      >
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Initialize date pickers
+        flatpickr("#checkin", {
+          dateFormat: "Y-m-d",
+          onChange: updateStayDetails,
+        });
+        flatpickr("#checkout", {
+          dateFormat: "Y-m-d",
+          onChange: updateStayDetails,
+        });
+
+        let rooms = document.querySelectorAll(".room");
+        const roomList = document.querySelector(".room-list");
+        const applicantForm = document.getElementById("applicant-details");
+        const nextButton = document.querySelector(".next");
+        const prevButton = document.createElement("button");
+        const searchButton = document.getElementById("search");
+
+        prevButton.textContent = "Previous";
+        prevButton.classList.add("next");
+        prevButton.style.marginRight = "10px";
+        prevButton.style.display = "none";
+        nextButton.parentNode.insertBefore(prevButton, nextButton);
+
+        let currentIndex = 0;
+        const roomsPerPage = 3;
+        let selectedRoomRate = 0;
+        let selectedRoomId = null;
+
+        // Handle search button click
+        searchButton.addEventListener("click", async function() {
+          const checkin = document.getElementById("checkin").value;
+          const checkout = document.getElementById("checkout").value;
+          const guests = document.getElementById("guests").value;
+
+          if (!checkin || !checkout) {
+            alert("Please select both check-in and check-out dates");
+            return;
+          }
+
+          try {
+            const response = await fetch("/dashboard/applications/check-availability/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({
+                date_join: checkin,
+                date_leave: checkout,
+                guests: parseInt(guests)
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              // Update the room list with the new data
+              updateRoomList(data.chapters);
+            } else {
+              const errorData = await response.json();
+              alert(errorData.error || "Error checking availability");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Error checking availability");
+          }
+        });
+
+        // Function to attach event listeners to room elements
+        function attachRoomEventListeners() {
+          const rooms = document.querySelectorAll(".room");
+          rooms.forEach((room) => {
+            // Room selection event listener
+            room.addEventListener("click", function (e) {
+              // Don't trigger room selection if clicking on images
+              if (e.target.closest('.image-gallery')) {
+                return;
+              }
+              
+              if (this.classList.contains("selected")) {
+                this.classList.remove("selected");
+                applicantForm.style.display = "none";
+                nextButton.textContent = "Next";
+                selectedRoomRate = 0;
+                selectedRoomId = null;
+                showRooms();
+              } else {
+                rooms.forEach((r) => r.classList.remove("selected"));
+                this.classList.add("selected");
+                applicantForm.style.display = "block";
+
+                selectedRoomRate = parseFloat(this.dataset.rate);
+                selectedRoomId = this.dataset.id;
+                document.getElementById("selected-room").textContent =
+                  this.dataset.name;
+                document.getElementById(
+                  "room-rate"
+                ).textContent = `${selectedRoomRate}€ per night`;
+
+                updateStayDetails();
+                nextButton.textContent = "Select Room";
+                showRooms();
+              }
+            });
+
+            // Image gallery event listeners
+            const gallery = room.querySelector('.image-gallery');
+            if (gallery) {
+              const mainImage = gallery.querySelector('.main-image');
+              const thumbnails = gallery.querySelectorAll('.thumbnail');
+              
+              if (mainImage) {
+                // Handle main image click
+                mainImage.addEventListener('click', function(e) {
+                  e.stopPropagation();
+                  this.classList.toggle('expanded');
+                });
+
+                // Load main image
+                if (mainImage.dataset.src) {
+                  mainImage.src = mainImage.dataset.src;
+                  mainImage.onload = function() {
+                    this.classList.remove('loading');
+                  };
+                }
+              }
+              
+              if (thumbnails.length > 0) {
+                // Handle thumbnail clicks
+                thumbnails.forEach(thumb => {
+                  thumb.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Update main image
+                    if (mainImage) {
+                      mainImage.src = this.dataset.fullUrl;
+                      mainImage.classList.add('loading');
+                      mainImage.onload = function() {
+                        this.classList.remove('loading');
+                      };
+                    }
+                    
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                  });
+
+                  // Load thumbnail
+                  if (thumb.dataset.src) {
+                    thumb.src = thumb.dataset.src;
+                    thumb.onload = function() {
+                      this.classList.remove('loading');
+                    };
+                  }
+                });
+              }
+            }
+          });
+        }
+
+        // Add function to update room list
+        function updateRoomList(chapters) {
+          const roomList = document.querySelector(".room-list");
+          if (!roomList) {
+            return;
+          }
+          
+          roomList.innerHTML = ""; // Clear existing rooms
+
+          // Sort chapters by name
+          const sortedChapters = [...chapters].sort((a, b) => 
+            a.chapter.name.localeCompare(b.chapter.name)
+          );
+
+          sortedChapters.forEach((chapter, index) => {
+            const roomDiv = document.createElement("div");
+            roomDiv.className = "room";
+            roomDiv.dataset.name = chapter.chapter.name;
+            roomDiv.dataset.rate = chapter.nightly_rate;
+            roomDiv.dataset.id = chapter.chapter.id;
+            
+            if (!chapter.is_available) {
+              roomDiv.style.opacity = "0.5";
+              roomDiv.style.pointerEvents = "none";
+            }
+
+            roomDiv.innerHTML = `
+              <div class="image-gallery">
+                ${chapter.images.length > 0 ? 
+                  `<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                        data-src="${chapter.images[0].url}" 
+                        alt="${chapter.chapter.name} Main Image" 
+                        class="main-image loading" 
+                        data-full-url="${chapter.images[0].url}"
+                        loading="lazy">
+                   <div class="thumbnail-container">
+                     ${chapter.images.map((image, index) => `
+                       <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                            data-src="${image.url}" 
+                            alt="${chapter.chapter.name} Thumbnail ${index + 1}" 
+                            class="thumbnail loading ${index === 0 ? 'active' : ''}"
+                            data-full-url="${image.url}"
+                            loading="lazy">
+                     `).join('')}
+                   </div>` : 
+                  ''}
+              </div>
+              <div class="room-content">
+                <h3>${chapter.chapter.name}</h3>
+                <p>${chapter.chapter.description || ''}</p>
+                <p><strong>Accommodation price:</strong> ${chapter.nightly_rate}€ per night</p>
+                ${!chapter.is_available ? '<p style="color: red;">Not available for selected dates</p>' : ''}
+              </div>
+            `;
+
+            roomList.appendChild(roomDiv);
+          });
+
+          // Reset pagination
+          currentIndex = 0;
+          selectedRoomId = null;
+          selectedRoomRate = 0;
+          if (applicantForm) applicantForm.style.display = "none";
+          if (nextButton) nextButton.textContent = "Next";
+
+          // Update the rooms variable with the new room elements
+          rooms = document.querySelectorAll(".room");
+
+          // Reattach event listeners and update visibility
+          attachRoomEventListeners();
+          showRooms();
+        }
+
+        function showRooms() {
+          const rooms = document.querySelectorAll(".room");
+          
+          // Hide all rooms first
+          rooms.forEach(room => {
+            room.style.display = "none";
+          });
+
+          // Show only the rooms for the current page
+          for (let i = currentIndex; i < Math.min(currentIndex + roomsPerPage, rooms.length); i++) {
+            rooms[i].style.display = "flex";
+          }
+
+          // Update button visibility
+          const showPrev = currentIndex > 0;
+          const showNext = currentIndex + roomsPerPage < rooms.length;
+          
+          prevButton.style.display = showPrev ? "inline-block" : "none";
+          
+          // If a room is selected, show "Select Room" button
+          if (selectedRoomId) {
+            nextButton.textContent = "Select Room";
+            nextButton.style.display = "inline-block";
+          } else {
+            // Show Next button if there are more rooms to display
+            nextButton.style.display = showNext ? "inline-block" : "none";
+            nextButton.textContent = "Next";
+          }
+        }
+
+        function updateStayDetails() {
+          const checkin = document.getElementById("checkin").value;
+          const checkout = document.getElementById("checkout").value;
+
+          if (checkin && checkout && selectedRoomRate > 0) {
+            const nights = Math.max(
+              (new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24),
+              1
+            );
+            document.getElementById(
+              "stay-duration"
+            ).textContent = `${checkin} - ${checkout}`;
+            document.getElementById("total-nights").textContent = nights;
+            document.getElementById("total-price").textContent = `${
+              nights * selectedRoomRate
+            }€`;
+          }
+        }
+
+        nextButton.addEventListener("click", async function () {
+          if (currentIndex + roomsPerPage < rooms.length && !selectedRoomId) {
+            currentIndex += roomsPerPage;
+            showRooms();
+          } else if (selectedRoomId) {
+            // Validate form fields before submission
+            const firstName = document.getElementById("first-name").value;
+            const lastName = document.getElementById("last-name").value;
+            const email = document.getElementById("email").value;
+
+            if (!firstName || !lastName || !email) {
+              alert("Please fill in all required fields");
+              return;
+            }
+
+            // Handle room selection and form submission
+            const formData = {
+              chapter_id: selectedRoomId,
+              first_name: firstName,
+              last_name: lastName,
+              email: email,
+              date_join: document.getElementById("checkin").value,
+              date_leave: document.getElementById("checkout").value,
+              guests: parseInt(document.getElementById("guests").value),
+              total_price: parseFloat(document.getElementById("total-price").textContent),
+              member_type: document.getElementById("member-type").value,
+              question_1: document.getElementById("question1").value,
+              question_2: document.getElementById("question2").value,
+              question_3: document.getElementById("question3").value
+            };
+
+            try {
+              const response = await fetch("/dashboard/applications/create/", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": csrfToken,
+                  "Accept": "application/json"
+                },
+                body: JSON.stringify(formData)
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                window.location.href = data.redirect_url;
+              } else {
+                const errorData = await response.json();
+                alert(errorData.error || "Error submitting application");
+              }
+            } catch (error) {
+              alert("Error submitting application");
+            }
+          }
+        });
+
+        prevButton.addEventListener("click", function () {
+          if (currentIndex > 0) {
+            currentIndex -= roomsPerPage;
+            showRooms();
+          }
+        });
+
+        // Handle coupon application
+        document.getElementById("apply-coupon").addEventListener("click", async function() {
+          const couponCode = document.getElementById("coupon").value;
+          if (!couponCode) {
+            alert("Please enter a coupon code");
+            return;
+          }
+
+          try {
+            const response = await fetch("/dashboard/applications/apply-coupon/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+              },
+              body: JSON.stringify({
+                coupon_code: couponCode,
+                total_price: document.getElementById("total-price").textContent
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              document.getElementById("total-price").textContent = data.discounted_price + "€";
+            } else {
+              alert("Invalid coupon code");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Error applying coupon");
+          }
+        });
+
+        // Initialize room visibility
+        showRooms();
+      });
+    </script>
+  </body>
+</html>

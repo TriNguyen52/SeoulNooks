@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Applications{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} rounded-xl">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Applications</h1>
+        <a href="{% url 'new_application' %}" class="py-2 px-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
+            New Application
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="grid grid-cols-4 gap-4 p-4 bg-gray-50 border-b">
+            <div class="font-semibold text-gray-700">Name</div>
+            <div class="font-semibold text-gray-700">Stay Period</div>
+            <div class="font-semibold text-gray-700">Chapter</div>
+            <div class="font-semibold text-gray-700">Status</div>
+        </div>
+
+        {% for application in applications %}
+        <div class="grid grid-cols-4 gap-4 p-4 border-b hover:bg-gray-50 transition-colors">
+            <div class="flex items-center">
+                <a href="{% url 'application_detail' application.id %}" class="text-blue-600 hover:text-blue-800">
+                    {{ application.first_name }} {{ application.last_name }}
+                </a>
+            </div>
+            <div class="flex items-center">
+                {{ application.date_join|date:"M d, Y" }} - {{ application.date_leave|date:"M d, Y" }}
+            </div>
+            <div class="flex items-center">
+                {% if application.chapter %}
+                    {{ application.chapter.name }}
+                {% else %}
+                    <span class="text-gray-500">Not selected</span>
+                {% endif %}
+            </div>
+            <div class="flex items-center">
+                <span class="px-3 py-1 rounded-full text-sm
+                    {% if application.status == 'submitted' %}bg-green-100 text-green-800
+                    {% elif application.status == 'draft' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ application.get_status_display }}
+                </span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-8 text-center text-gray-500">
+            No applications found. Start by creating a new application.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any necessary JavaScript for dynamic behavior
+    const rows = document.querySelectorAll('.grid.grid-cols-4');
+    rows.forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Only navigate if not clicking on the name link
+            if (!e.target.closest('a')) {
+                const link = this.querySelector('a');
+                if (link) {
+                    window.location.href = link.href;
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

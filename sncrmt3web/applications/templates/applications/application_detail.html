@@ -1,0 +1,123 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Application Detail{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} rounded-xl">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-6 border-b">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Application Details</h1>
+                <span class="px-3 py-1 rounded-full text-sm
+                    {% if application.status == 'submitted' %}bg-green-100 text-green-800
+                    {% elif application.status == 'draft' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ application.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Personal Information</h2>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="mb-2"><span class="font-medium">Name:</span> {{ application.first_name }} {{ application.last_name }}</p>
+                        <p class="mb-2"><span class="font-medium">Email:</span> {{ application.email }}</p>
+                        <p><span class="font-medium">Member Type:</span> {{ application.get_member_type_display }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Stay Details</h2>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="mb-2"><span class="font-medium">Arrival Date:</span> {{ application.date_join|date:"M d, Y" }}</p>
+                        <p class="mb-2"><span class="font-medium">Departure Date:</span> {{ application.date_leave|date:"M d, Y" }}</p>
+                        <p><span class="font-medium">Number of Guests:</span> {{ application.get_guests_display }}</p>
+                    </div>
+                </div>
+
+                {% if application.chapter %}
+                <div class="col-span-2 space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Selected Chapter</h2>
+                    <div class="bg-gray-50 rounded-xl p-4 hover:shadow-lg transition-shadow">
+                        <div class="flex items-start space-x-4">
+                            {% if application.chapter.images.all %}
+                            <div class="w-48 h-48 rounded-lg overflow-hidden">
+                                <img src="{{ application.chapter.images.first.image.url }}" 
+                                     alt="{{ application.chapter.name }}" 
+                                     class="w-full h-full object-cover">
+                            </div>
+                            {% endif %}
+                            <div class="flex-1">
+                                <h3 class="text-lg font-medium text-blue-600 mb-2">{{ application.chapter.name }}</h3>
+                                <p class="text-gray-600 whitespace-pre-wrap">{{ application.chapter.description }}</p>
+                                <p class="mt-2 text-sm text-gray-500">Rate: {{ application.chapter.cost_per_night }}€ per night</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-8 space-y-4">
+                <h2 class="text-xl font-semibold text-gray-800">Application Questions</h2>
+                
+                {% if application.question_1 %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="font-medium text-gray-800 mb-2">Question 1: Please tell us about yourself and your interest in Sacred Mountain</h3>
+                    <p class="text-gray-600 whitespace-pre-wrap">{{ application.question_1 }}</p>
+                </div>
+                {% endif %}
+
+                {% if application.question_2 %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="font-medium text-gray-800 mb-2">Question 2: What skills or contributions would you bring to our community?</h3>
+                    <p class="text-gray-600 whitespace-pre-wrap">{{ application.question_2 }}</p>
+                </div>
+                {% endif %}
+
+                {% if application.question_3 %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="font-medium text-gray-800 mb-2">Question 3: What are your expectations for your stay?</h3>
+                    <p class="text-gray-600 whitespace-pre-wrap">{{ application.question_3 }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-8 flex space-x-4">
+                {% if application.is_editable %}
+                <a href="{% url 'edit_application' application.id %}" 
+                   class="py-2 px-4 bg-blue-500 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                    Edit Application
+                </a>
+                {% endif %}
+                <a href="{% url 'applications_list' %}" 
+                   class="py-2 px-4 bg-gray-500 text-white rounded-xl hover:bg-gray-700 transition-colors">
+                    Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any necessary JavaScript for dynamic behavior
+    const chapterImages = document.querySelectorAll('.chapter-image');
+    if (chapterImages.length > 0) {
+        // Initialize image gallery if needed
+    }
+});
+</script>
+{% endblock %}
